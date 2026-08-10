@@ -1,4 +1,4 @@
-from tetris_environment import TetrisEnvironment
+from tetris_environment_par import TetrisEnvironment
 
 env = TetrisEnvironment()
 env.reset()
