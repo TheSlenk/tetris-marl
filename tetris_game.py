@@ -20,11 +20,11 @@ class TetrisGame:
     def pass_turn(self):
         self.current_player_idx = (self.current_player_idx + 1) % self.num_players
     
-    def get_current_state(self, player_id: int = None):
+    def get_current_state(self, player_id: int | None = None):
         player_id = player_id if player_id is not None else self.current_player_idx
         return self.envs[player_id].get_raw_flat_board()
     
-    def legal_actions(self, player_id: int = None) -> list[int]:
+    def legal_actions(self, player_id: int | None = None) -> list[int]:
         player_id = player_id if player_id is not None else self.current_player_idx
         return [ACTION_MAPPING.index(key) for key in self.envs[player_id].get_next_states().keys()]
     

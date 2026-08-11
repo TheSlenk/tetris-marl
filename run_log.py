@@ -3,10 +3,10 @@ import numpy as np
 from display import DisplayLog
 import sys
 
-if len(sys.argv) < 2:
-    raise Exception('ERROR: Missing Log file Path')
+log_path = 'logs/latest.json'
+if len(sys.argv) > 1:
+    log_path = f"logs/{sys.argv[1]}"
 
-log_path = sys.argv[1]
 log_display = DisplayLog()
 
 with open(log_path, 'r') as f:
