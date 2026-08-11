@@ -317,6 +317,11 @@ class Tetris:
             copy_board[y, x] = self.current_obstacle.color_value.value
         
         return copy_board
+
+    def get_flat_board(self):
+        board = self.get_current_board()
+        board = board.flatten()
+        return np.array(board)
     
     def get_raw_flat_board(self):
         board = self.get_current_board()

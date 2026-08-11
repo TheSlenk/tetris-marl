@@ -9,13 +9,14 @@ from pettingzoo import AECEnv
 from pettingzoo.utils import AgentSelector, wrappers
 
 from tetris_game import TetrisGame, NUM_DISTINCT_ACTIONS, OBS_SHAPE
+from tetris import Tetris
 
-def env(render_mode=None)
+def env(render_mode=None):
     internal_render_mode = render_mode if render_mode != "ansi" else "human"
     env = raw_env(render_mode=internal_render_mode)
 
     if render_mode == "ansi":
-        env = wrappers.CaptureStdoutWrapper()
+        env = wrappers.CaptureStdoutWrapper(env)
 
     env = wrappers.AssertOutOfBoundsWrapper(env)
 
@@ -70,7 +71,10 @@ class raw_env(AECEnv):
 
         if seed is not None:
             self.np_random, self.np_random_seed = seeding.np_random(seed)
+
         self.agents = self.possible_agents[:]
+        self.envs =  { agent: }
+
         self.rewards = {agent: 0 for agent in self.agents}
         self._cumulative_rewards = {agent: 0 for agent in self.agents}
         self.terminations = {agent: False for agent in self.agents}
