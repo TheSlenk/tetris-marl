@@ -1,6 +1,8 @@
 from tetris_game import TetrisGame
 import json, time
 
+LATEST_LOG_PATH = 'logs/latest.json'
+
 class Logger:
     def __init__(self):
         self.timestep = 0
@@ -19,4 +21,7 @@ class Logger:
         log_json_str = json.dumps(self.logs)
 
         with open(self.log_path, 'a') as f:
+            f.write(log_json_str)
+
+        with open(LATEST_LOG_PATH, 'w') as f:
             f.write(log_json_str)

@@ -1,6 +1,7 @@
 from tetris_game import TetrisGame, NUM_DISTINCT_ACTIONS
 from tetris_logger import Logger
 import random
+
 env = TetrisGame(num_players=1)
 logger = Logger()
 
