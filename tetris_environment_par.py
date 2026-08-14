@@ -7,9 +7,9 @@ from gymnasium.utils import seeding
 
 from pettingzoo import ParallelEnv
 from pettingzoo.utils import parallel_to_aec, wrappers
+import time
 
 from tetris import Tetris
-from tetris_logger import Logger
 import itertools
 
 # Metadata
@@ -56,11 +56,10 @@ class parallel_env(ParallelEnv):
         )
 
         self.render_mode = render_mode
-        self.logger = Logger()
-
         # RLlib queries action_space()/observation_space() before reset() is
         # ever called, so the RNG must exist from construction time.
         self.np_random, self.np_random_seed = seeding.np_random(None)
+        self.envs = None
 
     @functools.cache
     def observation_space(self, agent) -> gymnasium.Space:
@@ -73,30 +72,25 @@ class parallel_env(ParallelEnv):
         return Discrete(NUM_DISTINCT_ACTIONS, seed=int(self.np_random_seed))
 
     def render(self):
-        if self.render_mode is None:
-            gymnasium.logger.warn(
-                'You are calling render method without specifying any render mode.'
-            )
-            return
-
-        self.logger.log(list(self.envs.values()))
+        pass
 
     def close(self):
-        self.logger.dump()
+        pass
 
     def reset(self, seed=None, options=None):
         if seed is not None:
             self.np_random, self.np_random_seed = seeding.np_random(seed)
         self.agents = self.possible_agents[:]
-        self.envs = {agent: Tetris() for agent in self.agents}
+        logging_dir = f'{int(time.time())}'
+        self.envs = {
+            agent: Tetris(i, logging=True, logging_dir=logging_dir) 
+            for i, agent in enumerate(self.agents)
+        }
         self.num_moves = 0
         # the observations should be numpy arrays even if there is only one value
         observations = {agent: self.envs[agent].get_raw_flat_board().astype(np.float32) for agent in self.agents}
         infos = {agent: {} for agent in self.agents}
         self.state = observations
-
-        self.logger = Logger()
-        self.logger.log(list(self.envs.values()))
 
         return observations, infos
 
@@ -127,6 +121,10 @@ class parallel_env(ParallelEnv):
 
         if env_truncation or any(terminations.values()):
             self.agents = []
+            # Dump logs
+            if self.envs is not None:
+                for env in self.envs.values(): 
+                    env.dump_log()
 
         if self.render_mode == "human":
             self.render()
