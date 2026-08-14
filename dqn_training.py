@@ -11,7 +11,6 @@ from tetris_environment_par import parallel_env
 def env_creator(config):
     return ParallelPettingZooEnv(parallel_env())
 
-
 register_env("tetris-v1", env_creator)
 
 config = (
@@ -24,8 +23,11 @@ config = (
         policy_mapping_fn=lambda agent_id, *args, **kwargs: "shared_policy",
     )
     .training(
+        # This env is multi-agent (PettingZoo), so episodes are MultiAgentEpisodes.
+        # The default single-agent EpisodeReplayBuffer can't sample them, so use the
+        # multi-agent (prioritized) episode buffer.
         replay_buffer_config={
-            "type": "PrioritizedEpisodeReplayBuffer",
+            "type": "MultiAgentPrioritizedEpisodeReplayBuffer",
             "capacity": 60000,
             "alpha": 0.5,
             "beta": 0.5,

@@ -58,14 +58,19 @@ class parallel_env(ParallelEnv):
         self.render_mode = render_mode
         self.logger = Logger()
 
+        # RLlib queries action_space()/observation_space() before reset() is
+        # ever called, so the RNG must exist from construction time.
+        self.np_random, self.np_random_seed = seeding.np_random(None)
+
     @functools.cache
     def observation_space(self, agent) -> gymnasium.Space:
-        # get_raw_flat_board() returns a flat binary array of length OBS_SHAPE
-        return Box(low=0, high=1, shape=(OBS_SHAPE,), dtype=np.int8)
+        # get_raw_flat_board() returns a flat binary array of length OBS_SHAPE.
+        # Use float32 so observations match the torch model's weight dtype.
+        return Box(low=0, high=1, shape=(OBS_SHAPE,), dtype=np.float32)
 
     @functools.cache
     def action_space(self, agent) -> gymnasium.Space:
-        return Discrete(NUM_DISTINCT_ACTIONS, seed=self.np_random_seed)
+        return Discrete(NUM_DISTINCT_ACTIONS, seed=int(self.np_random_seed))
 
     def render(self):
         if self.render_mode is None:
@@ -86,7 +91,7 @@ class parallel_env(ParallelEnv):
         self.envs = {agent: Tetris() for agent in self.agents}
         self.num_moves = 0
         # the observations should be numpy arrays even if there is only one value
-        observations = {agent: self.envs[agent].get_raw_flat_board().astype(np.int8) for agent in self.agents}
+        observations = {agent: self.envs[agent].get_raw_flat_board().astype(np.float32) for agent in self.agents}
         infos = {agent: {} for agent in self.agents}
         self.state = observations
 
@@ -113,7 +118,7 @@ class parallel_env(ParallelEnv):
         truncations = {agent: env_truncation for agent in self.agents}
 
         observations = {
-            agent: self.envs[agent].get_raw_flat_board().astype(np.int8)
+            agent: self.envs[agent].get_raw_flat_board().astype(np.float32)
             for agent in self.agents
         }
         self.state = observations
