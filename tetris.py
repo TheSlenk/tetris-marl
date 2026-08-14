@@ -2,6 +2,7 @@ import random
 import numpy as np
 from enum import Enum
 from collections import deque
+from tetris_logger import Logger
 
 class BlockColor(Enum):
     BLUE = 1
@@ -101,12 +102,20 @@ class SObstacle(Obstacle):
         self.blocks.append(Block(1, -1))
 
 class Tetris:
-    def __init__(self, width: int = 10, height: int = 20):
+    def __init__(self, agent_id, logging = True, logging_dir = '', 
+                width: int = 10, height: int = 20):
+        self.agent_id = agent_id
+        if logging:
+            self.logger = Logger(agent_id, logging_dir)
+        
         self.width = width
         self.height = height
         self.board = np.zeros((height, width))
         self.done = False
         self.step = 0
+
+        self.last_reward = 0
+        self.total_reward = 0
 
         self.current_obstacle: Obstacle | None = None
         self.obstacle_queue = deque()
@@ -114,6 +123,8 @@ class Tetris:
         self.next_states: dict = None
 
         self.next_obstacle()
+
+        self.log()
 
     def next_obstacle(self, peice_id: int = None):
         if peice_id is not None or len(self.obstacle_queue) == 0:
@@ -269,7 +280,20 @@ class Tetris:
             self.step += 1
             self.next_states = self._gen_next_states()
 
+            self.last_reward = reward
+            self.total_reward += reward
+
+            self.log()
+
         return self.get_current_board(), self.get_next_states(), reward, self.done
+
+    def log(self):
+        if self.logger is not None:
+            self.logger.log(self.get_current_board().tolist(), self.last_reward, self.total_reward, self.done)
+
+    def dump_log(self):
+        if self.logger is not None:
+            self.logger.dump()
 
     def _find_closest_state(self, state: tuple, state_list: list[tuple]) -> tuple:
         same_rot = [s for s in state_list if s[1] == state[1]]

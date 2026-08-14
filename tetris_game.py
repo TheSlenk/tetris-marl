@@ -16,6 +16,7 @@ class TetrisGame:
         self.envs = [Tetris(height=HEIGHT, width=WIDTH) for _ in range(num_players)]
         self.current_player_idx = 0
         self.total_rewards = [0.0] * num_players
+        self.latest_rewards = [0.0] * num_players
     
     def pass_turn(self):
         self.current_player_idx = (self.current_player_idx + 1) % self.num_players
@@ -29,7 +30,9 @@ class TetrisGame:
         return [ACTION_MAPPING.index(key) for key in self.envs[player_id].get_next_states().keys()]
     
     def apply_action(self, action_id: int):
+        self.latest_rewards = [0.0] * self.num_players
         _, _, step_reward, _ = self.envs[self.current_player_idx].play(ACTION_MAPPING[action_id])
+        self.latest_rewards[self.current_player_idx] = step_reward
         self.total_rewards[self.current_player_idx] += step_reward
 
         self.pass_turn()
