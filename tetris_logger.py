@@ -1,4 +1,4 @@
-from tetris_game import TetrisGame
+from tetris import Tetris
 import json, time
 
 LATEST_LOG_PATH = 'logs/latest.json'
@@ -9,11 +9,13 @@ class Logger:
         self.logs = {}
         self.log_path = f'logs/log_{int(time.time())}.json'
 
-    def log(self, envs: TetrisGame):
+    def log(self, envs: list[Tetris]):
         self.logs[self.timestep] = {f"agent_{i}": {
-            "board": board.tolist(),
-            "done": done,
-        } for i, (board, done) in enumerate(envs.full_game_display())}
+            "board": env.get_current_board().tolist(),
+            "last_reward": env.last_reward,
+            "total_reward": env.total_reward,
+            "done": env.done
+        } for i, env in enumerate(envs)}
 
         self.timestep += 1
 

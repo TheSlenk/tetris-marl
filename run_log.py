@@ -19,8 +19,9 @@ with open(log_path, 'r') as f:
         envs = log_obj[cursor]
         states = list(envs.values())
         clean_states = [(np.array(state['board']), state['done']) for state in states]
+        agent_rewards = [(state['last_reward'], state['total_reward']) for state in states]
 
-        move = log_display.show_step(cursor, clean_states)
+        move = log_display.show_step(f"{cursor}/{steps[-1]}", agent_rewards, clean_states)
         if move >= -1 and move <= 1:
             if move == 0:
                 break

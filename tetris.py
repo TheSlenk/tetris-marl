@@ -108,6 +108,9 @@ class Tetris:
         self.done = False
         self.step = 0
 
+        self.last_reward = 0
+        self.total_reward = 0
+
         self.current_obstacle: Obstacle | None = None
         self.obstacle_queue = deque()
 
@@ -268,6 +271,9 @@ class Tetris:
             self.done = self.is_game_over()
             self.step += 1
             self.next_states = self._gen_next_states()
+
+            self.last_reward = reward
+            self.total_reward += reward
 
         return self.get_current_board(), self.get_next_states(), reward, self.done
 

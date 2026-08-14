@@ -91,7 +91,7 @@ class DisplayLog:
             self.screen = pygame.display.set_mode((width, height))
             self.running = False
         
-    def show_step(self, step, env) -> int:
+    def show_step(self, step_ratio, rewards, env) -> int:
         def play() -> int:
             def draw_board(index: int, board, done: bool):
                 rows, cols = board.shape
@@ -115,6 +115,7 @@ class DisplayLog:
                     self.margin_y = (self.player_height * 0.1) // 2
                     self.cell_size_x = (self.player_width * 0.9) // 10
                     self.cell_size_y = (self.player_height * 0.9) // 20
+
                     boards = env
                     for index, (board, done) in enumerate(boards):
                         draw_board(index, board, done)
@@ -140,7 +141,11 @@ class DisplayLog:
             return 0
                             
 
-        pygame.display.set_caption(f'Step: {step}')
+        caption = f'Step: {step_ratio}'
+        for agent, (step_r, total_r) in enumerate(rewards):
+            caption += f', Agent_{agent}: (step_reward: {step_r}, total_reward: {total_r})'
+        pygame.display.set_caption(caption)
+
         self.running = True
         return play()
     
