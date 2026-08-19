@@ -17,6 +17,20 @@ with open('dqn_training_rewards.csv', 'r') as f:
 plt.figure()
 plt.plot(iterations, returns, label="DQN")
 
+with open('dqn_v2_training_rewards.csv', 'r') as f:
+    reader = csv.reader(f)
+    rows = list(reader)[1:931]
+
+    iterations = []
+    returns = []
+    batch = 10
+
+    for i in range(0, len(rows), batch):
+        iterations.append(int(rows[i + batch - 1][0]))
+        returns.append(sum([float(result) for _, result, _ in rows[i:i+batch]]) / batch)
+
+plt.plot(iterations, returns, label="DQN_V2")
+
 with open('random_policy_rewards.csv', 'r') as f:
     reader = csv.reader(f)
     rows = list(reader)[1:]

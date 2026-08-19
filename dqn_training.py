@@ -12,8 +12,8 @@ from tetris_environment_par import NUM_PLAYERS, parallel_env
 NUM_EPOCHS = 1_000
 AGENT_IDS = tuple(f"player_{i}" for i in range(NUM_PLAYERS))
 CHECKPOINT_DIR = Path("checkpoints").resolve()
-CHECKPOINT_INTERVAL = 10
-RESTORE_CHECKPOINT = '/home/stephen/HP/tetris-marl/checkpoints/iteration_20'
+CHECKPOINT_INTERVAL = 100
+RESTORE_CHECKPOINT = None
 
 # RLlib has its own registry (separate from PettingZoo's). Wrap the PettingZoo
 # ParallelEnv in ParallelPettingZooEnv so RLlib sees it as a MultiAgentEnv.
