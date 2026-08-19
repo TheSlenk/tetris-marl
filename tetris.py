@@ -105,6 +105,8 @@ class Tetris:
     def __init__(self, agent_id, logging = True, logging_dir = '', 
                 width: int = 10, height: int = 20):
         self.agent_id = agent_id
+
+        self.logger = None
         if logging:
             self.logger = Logger(agent_id, logging_dir)
         

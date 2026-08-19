@@ -83,7 +83,7 @@ class parallel_env(ParallelEnv):
         self.agents = self.possible_agents[:]
         logging_dir = f'{int(time.time())}'
         self.envs = {
-            agent: Tetris(i, logging=True, logging_dir=logging_dir) 
+            agent: Tetris(i, logging=self.render == 'LOG', logging_dir=logging_dir) 
             for i, agent in enumerate(self.agents)
         }
         self.num_moves = 0
