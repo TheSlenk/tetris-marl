@@ -9,16 +9,16 @@ from pettingzoo import ParallelEnv
 from pettingzoo.utils import parallel_to_aec, wrappers
 import time
 
-from tetris import Tetris
+from tetris import Tetris, NUM_DISTINCT_OBSTACLES
 import itertools
 
 # Metadata
-NUM_PLAYERS = 1
+NUM_PLAYERS = 2
 WIDTH = 10
 HEIGHT = 20
-OBS_SHAPE = WIDTH * HEIGHT
+OBS_SHAPE = WIDTH * HEIGHT * NUM_PLAYERS
 
-ACTION_MAPPING = list(itertools.product(range(-WIDTH // 2, (WIDTH // 2) + 1), (0, 90, 180, 270)))
+ACTION_MAPPING = list(itertools.product(list(itertools.product(range(-WIDTH // 2, (WIDTH // 2) + 1), (0, 90, 180, 270))), range(NUM_DISTINCT_OBSTACLES)))
 NUM_DISTINCT_ACTIONS = len(ACTION_MAPPING)
 MAX_GAME_LEN = 50_000
 
@@ -83,16 +83,20 @@ class parallel_env(ParallelEnv):
         self.agents = self.possible_agents[:]
         logging_dir = f'{int(time.time())}'
         self.envs = {
-            agent: Tetris(i, logging=self.render == 'LOG', logging_dir=logging_dir) 
+            agent: Tetris(i, logging=self.render_mode == 'LOG', logging_dir=logging_dir) 
             for i, agent in enumerate(self.agents)
         }
         self.num_moves = 0
         # the observations should be numpy arrays even if there is only one value
-        observations = {agent: self.envs[agent].get_raw_flat_board().astype(np.float32) for agent in self.agents}
+        observations = {agent: self.full_obs() for agent in self.agents}
         infos = {agent: {} for agent in self.agents}
         self.state = observations
 
         return observations, infos
+
+    def full_obs(self):
+        obs = [self.envs[agent].get_raw_flat_board().astype(np.float32) for agent in self.agents]
+        return np.concatenate(obs)
 
     def step(self, actions):
         if not actions:
@@ -102,28 +106,43 @@ class parallel_env(ParallelEnv):
         rewards = {}
         terminations = {}
 
+        # Determine obstacle decesion for opponent
+        agent_obstacles = {}
+        for i, agent in enumerate(self.agents):
+            _, obstacle = ACTION_MAPPING[actions[agent]]
+            agent_obstacles[self.agents[(i + 1) % len(self.agents)]] = obstacle
+
+        with open('obs_usage.log', 'a', newline='') as f:
+            for agent in self.agents:
+                f.write(str(agent_obstacles[agent]) + '\n')
+
         for agent in self.agents:
-            _, _, reward, done = self.envs[agent].play(ACTION_MAPPING[actions[agent]])
+            move, _ = ACTION_MAPPING[actions[agent]]
+            _, _, reward, done = self.envs[agent].play(move, agent_obstacles[agent])
             rewards[agent] = reward
             terminations[agent] = done
 
         self.num_moves += 1
         env_truncation = self.num_moves >= MAX_GAME_LEN
+        env_termination = any(terminations.values())
+        if env_termination:
+            # Both players share one episode; a game-over for either board ends it.
+            terminations = {agent: True for agent in self.agents}
         truncations = {agent: env_truncation for agent in self.agents}
 
         observations = {
-            agent: self.envs[agent].get_raw_flat_board().astype(np.float32)
+            agent: self.full_obs()
             for agent in self.agents
         }
         self.state = observations
 
         infos = {agent: {} for agent in self.agents}
 
-        if env_truncation or any(terminations.values()):
+        if env_truncation or env_termination:
             self.agents = []
             # Dump logs
             if self.envs is not None:
-                for env in self.envs.values(): 
+                for env in self.envs.values():
                     env.dump_log()
 
         if self.render_mode == "human":

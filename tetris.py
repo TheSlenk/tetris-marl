@@ -4,6 +4,8 @@ from enum import Enum
 from collections import deque
 from tetris_logger import Logger
 
+NUM_DISTINCT_OBSTACLES = 7
+
 class BlockColor(Enum):
     BLUE = 1
     PINK = 2
@@ -130,10 +132,10 @@ class Tetris:
 
     def next_obstacle(self, peice_id: int = None):
         if peice_id is not None or len(self.obstacle_queue) == 0:
-            random_obstacle = peice_id if peice_id is not None else random.choice(range(7))
+            random_obstacle = peice_id if peice_id is not None else random.choice(range(NUM_DISTINCT_OBSTACLES))
             self.current_obstacle = self.new_obstacle(random_obstacle)
         else:
-            self.current_obstacle = self.obstacle_queue.popleft()
+            self.current_obstacle = self.new_obstacle(self.obstacle_queue.popleft())
     
     def new_obstacle(self, id: int) -> Obstacle:
         x, y = self.width // 2 - 1, 2
@@ -262,10 +264,13 @@ class Tetris:
         self.board = self.get_current_board()
         self.next_obstacle()
 
-    def play(self, next_state: tuple[int, int]):
+    def play(self, next_state: tuple[int, int], queued_obstacle_id: int | None = None):
         reward = 0
 
         if not self.done:
+            if queued_obstacle_id is not None:
+                self.obstacle_queue.append(queued_obstacle_id)
+            
             applied = self.apply_state(next_state)
             if not applied:
                 valid_next_states = list(self.get_next_states().keys())

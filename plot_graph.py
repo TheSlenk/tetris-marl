@@ -17,6 +17,20 @@ with open('dqn_training_rewards.csv', 'r') as f:
 plt.figure()
 plt.plot(iterations, returns, label="DQN")
 
+with open('dqn_v2_long_training_rewards.csv', 'r') as f:
+    reader = csv.reader(f)
+    rows = list(reader)[1:2991]
+
+    iterations = []
+    returns = []
+    batch = 10
+
+    for i in range(0, len(rows), batch):
+        iterations.append(int(rows[i + batch - 1][0]))
+        returns.append(sum([float(result) for _, result, _ in rows[i:i+batch]]) / batch)
+
+plt.plot(iterations, returns, label="DQN_V2_SECOND_RUN")
+
 with open('dqn_v2_training_rewards.csv', 'r') as f:
     reader = csv.reader(f)
     rows = list(reader)[1:931]
@@ -53,8 +67,8 @@ plt.legend(loc="lower right")
 plt.xlabel("Training iteration")
 plt.ylabel("Mean episode return")
 plt.title("Reward progression")
-plt.xlim(0, 1000)
-plt.gca().xaxis.set_major_locator(MultipleLocator(100))
+plt.xlim(0, 3000)
+plt.gca().xaxis.set_major_locator(MultipleLocator(250))
 plt.grid(True)
 plt.savefig("training_rewards.png")
 print("Saved training_rewards.csv and training_rewards.png")
