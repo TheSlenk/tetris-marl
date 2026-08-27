@@ -61,19 +61,28 @@ if RESTORE_CHECKPOINT is not None:
     algo.restore(RESTORE_CHECKPOINT)
     print(f"Restored checkpoint: {RESTORE_CHECKPOINT}")
 
-with open('training_rewards.csv', 'w', newline="") as f:
-    writer = csv.writer(f)
-    writer.writerow(["iteration", "episode_return_mean", "episode_len_mean"])
+reward_files = {}
+for agent_id in AGENT_IDS:
+    reward_file = open(
+        f"training_rewards_{agent_id}.csv", "w", newline=""
+    )
+    csv.writer(reward_file).writerow(
+        ["iteration", "episode_return_mean", "episode_len_mean"]
+    )
+    reward_files[agent_id] = reward_file
     
 for i in range(NUM_EPOCHS):
     result = algo.train()
     env_runners = result.get("env_runners", {})
-    return_mean = env_runners.get("episode_return_mean")
+    agent_returns = env_runners.get("agent_episode_returns_mean", {})
     len_mean = env_runners.get("episode_len_mean")
-    with open("training_rewards.csv", "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow((i, return_mean, len_mean))
-    print(f"iter {i}: return_mean={return_mean} len_mean={len_mean}")
+    agent_return_values = {}
+    for agent_id, reward_file in reward_files.items():
+        agent_return = agent_returns.get(agent_id)
+        csv.writer(reward_file).writerow((i, agent_return, len_mean))
+        reward_file.flush()
+        agent_return_values[agent_id] = agent_return
+    print(f"iter {i}: agent_returns={agent_return_values} len_mean={len_mean}")
 
     if (i + 1) % CHECKPOINT_INTERVAL == 0:
         checkpoint_path = algo.save_to_path(
@@ -83,6 +92,9 @@ for i in range(NUM_EPOCHS):
 
 checkpoint_path = algo.save_to_path(CHECKPOINT_DIR / "latest")
 print(f"Saved final checkpoint: {checkpoint_path}")
+
+for reward_file in reward_files.values():
+    reward_file.close()
 
 algo.stop()
 ray.shutdown()

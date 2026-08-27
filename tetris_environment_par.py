@@ -120,6 +120,10 @@ class parallel_env(ParallelEnv):
 
         self.num_moves += 1
         env_truncation = self.num_moves >= MAX_GAME_LEN
+        env_termination = any(terminations.values())
+        if env_termination:
+            # Both players share one episode; a game-over for either board ends it.
+            terminations = {agent: True for agent in self.agents}
         truncations = {agent: env_truncation for agent in self.agents}
 
         observations = {
@@ -130,7 +134,7 @@ class parallel_env(ParallelEnv):
 
         infos = {agent: {} for agent in self.agents}
 
-        if env_truncation or any(terminations.values()):
+        if env_truncation or env_termination:
             self.agents = []
             # Dump logs
             if self.envs is not None:
