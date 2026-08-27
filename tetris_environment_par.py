@@ -112,6 +112,10 @@ class parallel_env(ParallelEnv):
             _, obstacle = ACTION_MAPPING[actions[agent]]
             agent_obstacles[self.agents[(i + 1) % len(self.agents)]] = obstacle
 
+        with open('obs_usage.log', 'a', newline='') as f:
+            for agent in self.agents:
+                f.write(str(agent_obstacles[agent]) + '\n')
+
         for agent in self.agents:
             move, _ = ACTION_MAPPING[actions[agent]]
             _, _, reward, done = self.envs[agent].play(move, agent_obstacles[agent])
