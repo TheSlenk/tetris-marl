@@ -13,10 +13,10 @@ from tetris import Tetris, NUM_DISTINCT_OBSTACLES
 import itertools
 
 # Metadata
-NUM_PLAYERS = 1
+NUM_PLAYERS = 2
 WIDTH = 10
 HEIGHT = 20
-OBS_SHAPE = WIDTH * HEIGHT
+OBS_SHAPE = WIDTH * HEIGHT * NUM_PLAYERS
 
 ACTION_MAPPING = list(itertools.product(list(itertools.product(range(-WIDTH // 2, (WIDTH // 2) + 1), (0, 90, 180, 270))), range(NUM_DISTINCT_OBSTACLES)))
 NUM_DISTINCT_ACTIONS = len(ACTION_MAPPING)
@@ -88,11 +88,15 @@ class parallel_env(ParallelEnv):
         }
         self.num_moves = 0
         # the observations should be numpy arrays even if there is only one value
-        observations = {agent: self.envs[agent].get_raw_flat_board().astype(np.float32) for agent in self.agents}
+        observations = {agent: self.full_obs() for agent in self.agents}
         infos = {agent: {} for agent in self.agents}
         self.state = observations
 
         return observations, infos
+
+    def full_obs(self):
+        obs = [self.envs[agent].get_raw_flat_board().astype(np.float32) for agent in self.agents]
+        return np.concatenate(obs)
 
     def step(self, actions):
         if not actions:
@@ -102,9 +106,15 @@ class parallel_env(ParallelEnv):
         rewards = {}
         terminations = {}
 
+        # Determine obstacle decesion for opponent
+        agent_obstacles = {}
+        for i, agent in enumerate(self.agents):
+            _, obstacle = ACTION_MAPPING[actions[agent]]
+            agent_obstacles[self.agents[(i + 1) % len(self.agents)]] = obstacle
+
         for agent in self.agents:
-            move, obstacle = ACTION_MAPPING[actions[agent]]
-            _, _, reward, done = self.envs[agent].play(move, obstacle)
+            move, _ = ACTION_MAPPING[actions[agent]]
+            _, _, reward, done = self.envs[agent].play(move, agent_obstacles[agent])
             rewards[agent] = reward
             terminations[agent] = done
 
@@ -113,7 +123,7 @@ class parallel_env(ParallelEnv):
         truncations = {agent: env_truncation for agent in self.agents}
 
         observations = {
-            agent: self.envs[agent].get_raw_flat_board().astype(np.float32)
+            agent: self.full_obs()
             for agent in self.agents
         }
         self.state = observations

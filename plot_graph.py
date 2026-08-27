@@ -17,7 +17,7 @@ with open('dqn_training_rewards.csv', 'r') as f:
 plt.figure()
 plt.plot(iterations, returns, label="DQN")
 
-with open('training_rewards.csv', 'r') as f:
+with open('dqn_v2_long_training_rewards.csv', 'r') as f:
     reader = csv.reader(f)
     rows = list(reader)[1:2991]
 

@@ -1,6 +1,7 @@
 import tetris_environment_par
 from pettingzoo import make
 import csv
+import random
 
 env = make("parallel", "custom/tetris-v1", render_mode="human")
 observations, infos = env.reset()
@@ -13,7 +14,7 @@ NUM_EPISODES = 3000
 for episode in range(NUM_EPISODES):
     total_rewards = 0
     while env.agents:
-        actions = {agent: env.action_space(agent).sample() for agent in env.agents}
+        actions = {agent: random.choice(range(tetris_environment_par.NUM_DISTINCT_ACTIONS)) for agent in env.agents}
         observations, rewards, terminations, truncations, infos = env.step(actions)
         total_rewards += sum(rewards.values()) / len(rewards.values())
 
@@ -21,5 +22,8 @@ for episode in range(NUM_EPISODES):
         writer = csv.writer(f)
         writer.writerow((episode, total_rewards))
     observations, infos = env.reset()
+
+    if episode % 100 == 0:
+        print(f'Complete episode #{episode}...')
 
 env.close()
