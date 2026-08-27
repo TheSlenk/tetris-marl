@@ -9,7 +9,7 @@ with open('random_policy_rewards.csv', 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(('Episode', 'AVG_Reward'))
 
-NUM_EPISODES = 1000
+NUM_EPISODES = 3000
 for episode in range(NUM_EPISODES):
     total_rewards = 0
     while env.agents:

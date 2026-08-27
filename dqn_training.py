@@ -9,10 +9,10 @@ from ray.rllib.env.wrappers.pettingzoo_env import ParallelPettingZooEnv
 
 from tetris_environment_par import NUM_PLAYERS, parallel_env
 
-NUM_EPOCHS = 1_000
+NUM_EPOCHS = 5_000
 AGENT_IDS = tuple(f"player_{i}" for i in range(NUM_PLAYERS))
 CHECKPOINT_DIR = Path("checkpoints").resolve()
-CHECKPOINT_INTERVAL = 100
+CHECKPOINT_INTERVAL = 250
 RESTORE_CHECKPOINT = None
 
 # RLlib has its own registry (separate from PettingZoo's). Wrap the PettingZoo
