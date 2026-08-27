@@ -9,7 +9,7 @@ from pettingzoo import ParallelEnv
 from pettingzoo.utils import parallel_to_aec, wrappers
 import time
 
-from tetris import Tetris
+from tetris import Tetris, NUM_DISTINCT_OBSTACLES
 import itertools
 
 # Metadata
@@ -18,7 +18,7 @@ WIDTH = 10
 HEIGHT = 20
 OBS_SHAPE = WIDTH * HEIGHT
 
-ACTION_MAPPING = list(itertools.product(range(-WIDTH // 2, (WIDTH // 2) + 1), (0, 90, 180, 270)))
+ACTION_MAPPING = list(itertools.product(list(itertools.product(range(-WIDTH // 2, (WIDTH // 2) + 1), (0, 90, 180, 270))), range(NUM_DISTINCT_OBSTACLES)))
 NUM_DISTINCT_ACTIONS = len(ACTION_MAPPING)
 MAX_GAME_LEN = 50_000
 
@@ -83,7 +83,7 @@ class parallel_env(ParallelEnv):
         self.agents = self.possible_agents[:]
         logging_dir = f'{int(time.time())}'
         self.envs = {
-            agent: Tetris(i, logging=self.render == 'LOG', logging_dir=logging_dir) 
+            agent: Tetris(i, logging=self.render_mode == 'LOG', logging_dir=logging_dir) 
             for i, agent in enumerate(self.agents)
         }
         self.num_moves = 0
@@ -103,7 +103,8 @@ class parallel_env(ParallelEnv):
         terminations = {}
 
         for agent in self.agents:
-            _, _, reward, done = self.envs[agent].play(ACTION_MAPPING[actions[agent]])
+            move, obstacle = ACTION_MAPPING[actions[agent]]
+            _, _, reward, done = self.envs[agent].play(move, obstacle)
             rewards[agent] = reward
             terminations[agent] = done
 
@@ -123,7 +124,7 @@ class parallel_env(ParallelEnv):
             self.agents = []
             # Dump logs
             if self.envs is not None:
-                for env in self.envs.values(): 
+                for env in self.envs.values():
                     env.dump_log()
 
         if self.render_mode == "human":
