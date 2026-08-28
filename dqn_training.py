@@ -13,12 +13,12 @@ NUM_EPOCHS = 5_000
 AGENT_IDS = tuple(f"player_{i}" for i in range(NUM_PLAYERS))
 CHECKPOINT_DIR = Path("checkpoints").resolve()
 CHECKPOINT_INTERVAL = 250
-RESTORE_CHECKPOINT = None
+RESTORE_CHECKPOINT = 'checkpoints/iteration_3000'
 
 # RLlib has its own registry (separate from PettingZoo's). Wrap the PettingZoo
 # ParallelEnv in ParallelPettingZooEnv so RLlib sees it as a MultiAgentEnv.
 def env_creator(config):
-    return ParallelPettingZooEnv(parallel_env())
+    return ParallelPettingZooEnv(parallel_env(render_mode='LOG'))
 
 register_env("tetris-v1", env_creator)
 
