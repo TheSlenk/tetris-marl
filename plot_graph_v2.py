@@ -9,7 +9,7 @@ returns = []
 for player_id in range(NUM_PLAYERS):
     with open(f'training_rewards_player_{player_id}.csv', 'r') as f:
         reader = csv.reader(f)
-        rows = list(reader)[1:1901]
+        rows = list(reader)[1:3201]
 
         iterations = []
         returns = []
@@ -23,7 +23,7 @@ plt.plot(iterations, returns, label=f"DQN_Multiagent")
 
 with open('random_policy_rewards.csv', 'r') as f:
     reader = csv.reader(f)
-    rows = list(reader)[1:2000]
+    rows = list(reader)[1:3201]
 
     episodes = []
     rewards = []
@@ -43,7 +43,7 @@ plt.legend(loc="lower right")
 plt.xlabel("Training iteration")
 plt.ylabel("Mean episode return")
 plt.title("Reward progression")
-plt.xlim(0, 2000)
+plt.xlim(0, 3000)
 plt.gca().xaxis.set_major_locator(MultipleLocator(250))
 plt.grid(True)
 plt.savefig("training_rewards_v2.png")
